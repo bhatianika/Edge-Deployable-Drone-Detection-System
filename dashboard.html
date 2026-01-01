@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Drone Detection Dashboard</title>
+
+  <style>
+    body {
+      margin: 0;
+      padding: 20px;
+      background-color: #020617;
+      color: #e5e7eb;
+      font-family: Arial, sans-serif;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    /* ===== MAIN LAYOUT ===== */
+    .container {
+      display: flex;
+      gap: 25px;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    /* ===== VIDEO SECTION ===== */
+    .video-container {
+      flex: 2;
+      background-color: #111827;
+      padding: 15px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+
+    .video-title {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 18px;
+    }
+
+    .video-container img {
+      width: 100%;
+      border-radius: 10px;
+      border: 2px solid #1f2937;
+    }
+
+    /* ===== STATS SECTION ===== */
+    .stats-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card {
+      background-color: #111827;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      text-align: center;
+    }
+
+    .label {
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    .value {
+      font-size: 38px;
+      color: #38bdf8;
+    }
+
+    .status {
+      font-size: 16px;
+      color: #9ca3af;
+      margin-top: 5px;
+    }
+
+    /* ===== RESPONSIVE (MOBILE) ===== */
+    @media (max-width: 900px) {
+      .container {
+        flex-direction: column;
+      }
+
+      .video-container,
+      .stats-container {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Drone Detection System</h1>
+
+  <div class="container">
+
+    <!-- LEFT / TOP: LIVE VIDEO FEED -->
+    <div class="video-container">
+      <div class="video-title">Live Camera Feed</div>
+      <img src="/video_feed" alt="Live Video Feed">
+    </div>
+
+    <!-- RIGHT / BOTTOM: STATS -->
+    <div class="stats-container">
+
+      <!-- DRONE COUNT -->
+      <div class="card">
+        <div class="label">Drones Detected</div>
+        <div class="value" id="droneCount">0</div>
+      </div>
+
+      <!-- DISTANCE -->
+      <div class="card">
+        <div class="label">Distance (meters)</div>
+        <div class="value" id="distance">--</div>
+        <div class="status" id="distanceStatus">No drone detected</div>
+      </div>
+
+      <!-- CONFIDENCE (UI-ONLY, SAFE PLACEHOLDER) -->
+      <div class="card">
+        <div class="label">Confidence</div>
+        <div class="value" id="confidence">--</div>
+        <div class="status">Highest detected confidence</div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    function updateDashboard() {
+      fetch("/status")
+        .then(response => response.json())
+        .then(data => {
+
+          // Drone count
+          document.getElementById("droneCount").innerText =
+            data.drone_count ?? 0;
+
+          // Distance (SAFE with null)
+          if (data.distance_cm !== null) {
+            document.getElementById("distance").innerText =
+              (data.distance_cm / 100).toFixed(2);
+            document.getElementById("distanceStatus").innerText =
+              "Drone detected";
+          } else {
+            document.getElementById("distance").innerText = "--";
+            document.getElementById("distanceStatus").innerText =
+              "No drone detected";
+          }
+
+          // Confidence (backend not sending yet → placeholder)
+          document.getElementById("confidence").innerText =
+            data.drone_count > 0 ? "—" : "--";
+
+        })
+        .catch(err => console.error("Status fetch error:", err));
+    }
+
+    setInterval(updateDashboard, 500);
+    updateDashboard();
+  </script>
+
+</body>
+</html>
